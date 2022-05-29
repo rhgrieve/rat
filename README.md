@@ -13,7 +13,7 @@
 - [x] `-n`, `--number`
 - [x] `-s`, `--squeeze-blank`
 - [ ] `-t`
-- [ ] `-T`, `--show-tabs`
+- [x] `-T`, `--show-tabs`
 - [ ] `-u`
 - [ ] `-v`, `--show-nonprinting`
 - [x] `-h`, `--help`

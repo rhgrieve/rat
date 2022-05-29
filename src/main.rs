@@ -23,6 +23,7 @@ struct RatFlags {
     output_nums: bool,
     squeeze_blank: bool,
     number_nonblank: bool,
+    show_tabs: bool,
 }
 
 #[derive(Debug)]
@@ -39,6 +40,7 @@ impl RatArgs {
                 output_nums: false,
                 squeeze_blank: false,
                 number_nonblank: false,
+                show_tabs: false,
             },
             paths: vec![],
             error: None,
@@ -61,6 +63,7 @@ impl RatArgs {
                     "n" | "number" => r.flags.output_nums = true,
                     "s" | "squeeze-blank" => r.flags.squeeze_blank = true,
                     "b" | "number-nonblank" => r.flags.number_nonblank = true,
+                    "T" | "show-tabs" => r.flags.show_tabs = true,
                     "h" | "help" => display_help(),
                     "v" | "version" => display_version(),
                     default => {
@@ -103,21 +106,27 @@ fn print_concatenated_files(data: String, flags: RatFlags) {
     let mut previous_line_empty = false;
 
     for line in data.lines() {
+        let mut line_to_print = line.to_string();
+    
+        if flags.show_tabs && line.contains("\t") {
+            line_to_print = line_to_print.replace("\t", "^I");
+        }
+
         if flags.squeeze_blank {
-            if line.is_empty() && previous_line_empty {
+            if line_to_print.is_empty() && previous_line_empty {
                 continue;
             }
-            previous_line_empty = line.is_empty();
+            previous_line_empty = line_to_print.is_empty();
         }
 
         if flags.output_nums && !flags.number_nonblank {
-            println!("{}    {}", line_count, line);
+            println!("{}    {}", line_count, line_to_print);
             line_count += 1;
         } else if !line.is_empty() && flags.number_nonblank {
-            println!("{}    {}", line_count, line);
+            println!("{}    {}", line_count, line_to_print);
             line_count += 1;
         } else {
-            println!("{}", line);
+            println!("{}", line_to_print);
         }
     }
 }
