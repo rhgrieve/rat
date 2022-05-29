@@ -1,4 +1,4 @@
-use std::{env, fs, io};
+use std::{env, fs, io, process::exit};
 
 #[derive(Debug)]
 enum RatErrorType {
@@ -18,11 +18,9 @@ impl RatError {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 struct RatFlags {
     output_nums: bool,
-    display_help: bool,
-    display_version: bool,
 }
 
 #[derive(Debug)]
@@ -35,12 +33,8 @@ struct RatArgs {
 impl RatArgs {
     fn new() -> RatArgs {
         RatArgs {
-            flags: RatFlags {
-                output_nums: false,
-                display_help: false,
-                display_version: false,
-            },
-            paths: vec!(),
+            flags: RatFlags { output_nums: false },
+            paths: vec![],
             error: None,
         }
     }
@@ -53,12 +47,14 @@ impl RatArgs {
         let args_vec: Vec<String> = args.collect();
 
         for arg in &args_vec[1..] {
-            if arg.starts_with("-") || arg.starts_with("--") {
+            if arg.eq("-") {
+                r.paths.push(arg.to_string())
+            } else if arg.starts_with("-") || arg.starts_with("--") {
                 let flag = arg.trim_start_matches("-");
                 match flag {
                     "n" | "number" => r.flags.output_nums = true,
-                    "h" | "help" => r.flags.display_help = true,
-                    "v" | "version" => r.flags.display_version = true,
+                    "h" | "help" => display_help(),
+                    "v" | "version" => display_version(),
                     default => {
                         r.error = Some(RatError::new(
                             RatErrorType::InvalidFlag,
@@ -78,30 +74,31 @@ impl RatArgs {
 fn run(args: RatArgs) {
     let mut concatenated_files = String::new();
     for path in args.paths {
-        match fs::read_to_string(path) {
-            Ok(data) => concatenated_files.push_str(data.as_str()),
-            Err(err) => handle_error(RatError::new(RatErrorType::NoFileFound, format!("{}", err)))
+        if path.eq("-") {
+            print_concatenated_files(concatenated_files.clone(), args.flags);
+            enter_repl();
+        } else {
+            match fs::read_to_string(path) {
+                Ok(data) => concatenated_files.push_str(data.as_str()),
+                Err(err) => {
+                    handle_error(RatError::new(RatErrorType::NoFileFound, format!("{}", err)))
+                }
+            }
         }
     }
 
-    output_data(concatenated_files, args.flags)
+    print_concatenated_files(concatenated_files, args.flags)
 }
 
-fn output_data(data: String, flags: RatFlags) {
-    if flags.display_help {
-        display_help();
-    } else if flags.display_version {
-        display_version();
-    } else {
-        let mut line_count = 1;
-        for line in data.lines() {
-            if flags.output_nums {
-                println!("{}    {}", line_count, line);
-            } else {
-                println!("{}", line);
-            }
-            line_count += 1;
+fn print_concatenated_files(data: String, flags: RatFlags) {
+    let mut line_count = 1;
+    for line in data.lines() {
+        if flags.output_nums {
+            println!("{}    {}", line_count, line);
+        } else {
+            println!("{}", line);
         }
+        line_count += 1;
     }
 }
 
@@ -122,13 +119,7 @@ fn enter_repl() {
 
 fn choose_your_adventure(args: RatArgs) {
     if args.paths.is_empty() {
-        if args.flags.display_help {
-            display_help()
-        } else if args.flags.display_version {
-            display_version()
-        } else {
-            enter_repl();
-        }
+        enter_repl();
     } else {
         run(args)
     }
@@ -136,19 +127,21 @@ fn choose_your_adventure(args: RatArgs) {
 
 fn display_help() {
     println!("Usage: rat [OPTION]... [FILE]...");
+    exit(0)
 }
 
 fn display_version() {
     println!("rat v{}", env!("CARGO_PKG_VERSION"));
     println!("Copyright (c) 2022 Harrison Grieve");
     println!("License MIT: https://opensource.org/licenses/MIT");
+    exit(0)
 }
 
 fn handle_error(error: RatError) {
     eprintln!("{}", error.message);
     match error.error {
         RatErrorType::InvalidFlag => eprintln!("Try 'rat --help' for more information."),
-        _ => return
+        _ => return,
     }
 }
 
