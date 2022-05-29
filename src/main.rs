@@ -28,7 +28,7 @@ struct RatFlags {
 #[derive(Debug)]
 struct RatArgs {
     flags: RatFlags,
-    path: String,
+    paths: Vec<String>,
     error: Option<RatError>,
 }
 
@@ -40,7 +40,7 @@ impl RatArgs {
                 display_help: false,
                 display_version: false,
             },
-            path: String::new(),
+            paths: vec!(),
             error: None,
         }
     }
@@ -67,9 +67,7 @@ impl RatArgs {
                     }
                 }
             } else {
-                if r.path.is_empty() {
-                    r.path = arg.to_string();
-                }
+                r.paths.push(arg.to_string());
             }
         }
 
@@ -78,10 +76,15 @@ impl RatArgs {
 }
 
 fn run(args: RatArgs) {
-    match fs::read_to_string(&args.path) {
-        Ok(data) => output_data(data, args.flags),
-        Err(err) => handle_error(RatError::new(RatErrorType::NoFileFound, format!("{}", err)))
+    let mut concatenated_files = String::new();
+    for path in args.paths {
+        match fs::read_to_string(path) {
+            Ok(data) => concatenated_files.push_str(data.as_str()),
+            Err(err) => handle_error(RatError::new(RatErrorType::NoFileFound, format!("{}", err)))
+        }
     }
+
+    output_data(concatenated_files, args.flags)
 }
 
 fn output_data(data: String, flags: RatFlags) {
@@ -118,7 +121,7 @@ fn enter_repl() {
 }
 
 fn choose_your_adventure(args: RatArgs) {
-    if args.path.is_empty() {
+    if args.paths.is_empty() {
         if args.flags.display_help {
             display_help()
         } else if args.flags.display_version {
