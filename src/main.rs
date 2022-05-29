@@ -22,6 +22,7 @@ impl RatError {
 struct RatFlags {
     output_nums: bool,
     squeeze_blank: bool,
+    number_nonblank: bool,
 }
 
 #[derive(Debug)]
@@ -37,6 +38,7 @@ impl RatArgs {
             flags: RatFlags {
                 output_nums: false,
                 squeeze_blank: false,
+                number_nonblank: false,
             },
             paths: vec![],
             error: None,
@@ -58,6 +60,7 @@ impl RatArgs {
                 match flag {
                     "n" | "number" => r.flags.output_nums = true,
                     "s" | "squeeze-blank" => r.flags.squeeze_blank = true,
+                    "b" | "number-nonblank" => r.flags.number_nonblank = true,
                     "h" | "help" => display_help(),
                     "v" | "version" => display_version(),
                     default => {
@@ -107,13 +110,15 @@ fn print_concatenated_files(data: String, flags: RatFlags) {
             previous_line_empty = line.is_empty();
         }
 
-        if flags.output_nums {
+        if flags.output_nums && !flags.number_nonblank {
             println!("{}    {}", line_count, line);
+            line_count += 1;
+        } else if !line.is_empty() && flags.number_nonblank {
+            println!("{}    {}", line_count, line);
+            line_count += 1;
         } else {
             println!("{}", line);
         }
-
-        line_count += 1;
     }
 }
 

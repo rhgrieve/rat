@@ -7,7 +7,7 @@
 ## Implemented flags
 
 - [ ] `-A`, `--show-all`
-- [ ] `-b`, `--number-nonblank`
+- [x] `-b`, `--number-nonblank`
 - [ ] `-e`
 - [ ] `-E`, `--show-ends`
 - [x] `-n`, `--number`
