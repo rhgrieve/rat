@@ -24,6 +24,7 @@ struct RatFlags {
     squeeze_blank: bool,
     number_nonblank: bool,
     show_tabs: bool,
+    show_ends: bool,
 }
 
 #[derive(Debug)]
@@ -41,6 +42,7 @@ impl RatArgs {
                 squeeze_blank: false,
                 number_nonblank: false,
                 show_tabs: false,
+                show_ends: false,
             },
             paths: vec![],
             error: None,
@@ -64,6 +66,7 @@ impl RatArgs {
                     "s" | "squeeze-blank" => r.flags.squeeze_blank = true,
                     "b" | "number-nonblank" => r.flags.number_nonblank = true,
                     "T" | "show-tabs" => r.flags.show_tabs = true,
+                    "E" | "show-ends" => r.flags.show_ends = true,
                     "h" | "help" => display_help(),
                     "v" | "version" => display_version(),
                     default => {
@@ -107,9 +110,13 @@ fn print_concatenated_files(data: String, flags: RatFlags) {
 
     for line in data.lines() {
         let mut line_to_print = line.to_string();
-    
+
         if flags.show_tabs && line.contains("\t") {
             line_to_print = line_to_print.replace("\t", "^I");
+        }
+
+        if flags.show_ends {
+            line_to_print.push('$');
         }
 
         if flags.squeeze_blank {

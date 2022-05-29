@@ -9,7 +9,7 @@
 - [ ] `-A`, `--show-all`
 - [x] `-b`, `--number-nonblank`
 - [ ] `-e`
-- [ ] `-E`, `--show-ends`
+- [x] `-E`, `--show-ends`
 - [x] `-n`, `--number`
 - [x] `-s`, `--squeeze-blank`
 - [ ] `-t`
