@@ -11,7 +11,7 @@
 - [ ] `-e`
 - [ ] `-E`, `--show-ends`
 - [x] `-n`, `--number`
-- [ ] `-s`, `--squeeze-blank`
+- [x] `-s`, `--squeeze-blank`
 - [ ] `-t`
 - [ ] `-T`, `--show-tabs`
 - [ ] `-u`
