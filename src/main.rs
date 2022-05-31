@@ -25,6 +25,7 @@ struct RatFlags {
     number_nonblank: bool,
     show_tabs: bool,
     show_ends: bool,
+    show_nonprinting: bool,
 }
 
 #[derive(Debug)]
@@ -43,6 +44,7 @@ impl RatArgs {
                 number_nonblank: false,
                 show_tabs: false,
                 show_ends: false,
+                show_nonprinting: false,
             },
             paths: vec![],
             error: None,
@@ -67,8 +69,9 @@ impl RatArgs {
                     "b" | "number-nonblank" => r.flags.number_nonblank = true,
                     "T" | "show-tabs" => r.flags.show_tabs = true,
                     "E" | "show-ends" => r.flags.show_ends = true,
+                    "v" | "show-nonprinting" => r.flags.show_nonprinting = true,
                     "h" | "help" => display_help(),
-                    "v" | "version" => display_version(),
+                    "version" => display_version(),
                     default => {
                         r.error = Some(RatError::new(
                             RatErrorType::InvalidFlag,
@@ -110,6 +113,20 @@ fn print_concatenated_files(data: String, flags: RatFlags) {
 
     for line in data.lines() {
         let mut line_to_print = line.to_string();
+
+        if flags.show_nonprinting {
+            line_to_print.clear();
+            for ch in line.chars() {
+                if (ch as u32) <= 31 {
+                    match char::from_u32((ch as u32) + 64) {
+                        Some(c) => line_to_print.push_str(format!("^{}", c).as_str()),
+                        None => continue,
+                    }
+                } else {
+                    line_to_print.push(ch)
+                }
+            }
+        }
 
         if flags.show_tabs && line.contains("\t") {
             line_to_print = line_to_print.replace("\t", "^I");
